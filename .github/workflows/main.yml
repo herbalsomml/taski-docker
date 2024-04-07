@@ -111,24 +111,24 @@ jobs:
         if: ${{ success() }}
         uses: appleboy/telegram-action@master
         with:
-        to: ${{ secrets.TELEGRAM_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: |
-          ⏳ Проект ${{ github.repository }}. Backend был успешно запушен на DockerHub!
+          to: ${{ secrets.TELEGRAM_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ⏳ Проект ${{ github.repository }}. Backend был успешно запушен на DockerHub!
   
-          Репозиторий  DockerHub: hub.docker.com/repository/docker/${{ secrets.DOCKER_USERNANE }}/taski_backend
-          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+            Репозиторий  DockerHub: hub.docker.com/repository/docker/${{ secrets.DOCKER_USERNANE }}/taski_backend
+            Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
 
       - name: Send a Message to Telegram About Failed Backend Pushing to DockerHub
         if: ${{ failure() }}
         uses: appleboy/telegram-action@master
         with:
-        to: ${{ secrets.TELEGRAM_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: |
-          ❌ Проект ${{ github.repository }}. Не удалось запушить Backend на DockerHub!
+          to: ${{ secrets.TELEGRAM_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ❌ Проект ${{ github.repository }}. Не удалось запушить Backend на DockerHub!
 
-          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+            Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
 
   frontend_tests:
     name: Frontend Tests
