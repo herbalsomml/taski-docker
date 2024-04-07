@@ -202,24 +202,24 @@ jobs:
         if: ${{ success() }}
         uses: appleboy/telegram-action@master
         with:
-        to: ${{ secrets.TELEGRAM_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: |
-          ⏳ Проект ${{ github.repository }}. Frontend был успешно запушен на DockerHub!
+          to: ${{ secrets.TELEGRAM_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ⏳ Проект ${{ github.repository }}. Frontend был успешно запушен на DockerHub!
 
-          Репозиторий  DockerHub: hub.docker.com/repository/docker/${{ secrets.DOCKER_USERNANE }}/taski_frontend
-          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+            Репозиторий  DockerHub: hub.docker.com/repository/docker/${{ secrets.DOCKER_USERNANE }}/taski_frontend
+            Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
 
       - name: Send a Message to Telegram About Failed Frontend Pushing to DockerHub
         if: ${{ failure() }}
         uses: appleboy/telegram-action@master
         with:
-        to: ${{ secrets.TELEGRAM_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: |
-          ❌ Проект ${{ github.repository }}. Не удалось запушить Frontend на DockerHub!
+          to: ${{ secrets.TELEGRAM_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ❌ Проект ${{ github.repository }}. Не удалось запушить Frontend на DockerHub!
 
-          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+            Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
 
   build_gateway_and_push_to_docker_hub:
     name: Push gateway Docker Image to DockerHub
@@ -248,24 +248,24 @@ jobs:
         if: ${{ success() }}
         uses: appleboy/telegram-action@master
         with:
-        to: ${{ secrets.TELEGRAM_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: |
-          ⏳ Проект ${{ github.repository }}. Gateway был успешно запушен на DockerHub!
+          to: ${{ secrets.TELEGRAM_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ⏳ Проект ${{ github.repository }}. Gateway был успешно запушен на DockerHub!
   
-          Репозиторий  DockerHub: hub.docker.com/repository/docker/${{ secrets.DOCKER_USERNANE }}/taski_gateway
-          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+            Репозиторий  DockerHub: hub.docker.com/repository/docker/${{ secrets.DOCKER_USERNANE }}/taski_gateway
+            Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
 
       - name: Send a Message to Telegram About Failed Gateway Pushing to DockerHub
         if: ${{ failure() }}
         uses: appleboy/telegram-action@master
         with:
-        to: ${{ secrets.TELEGRAM_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: |
-          ❌ Проект ${{ github.repository }}. Не удалось запушить Gateway на DockerHub!
+          to: ${{ secrets.TELEGRAM_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ❌ Проект ${{ github.repository }}. Не удалось запушить Gateway на DockerHub!
 
-          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+            Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
 
   deploy:
     name: Deploying
@@ -299,21 +299,21 @@ jobs:
         if: ${{ success() }}
         uses: appleboy/telegram-action@master
         with:
-        to: ${{ secrets.TELEGRAM_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: |
-          ✅ Проект ${{ github.repository }} был успешно задеплоен на сервер!
-          Ссылка на сайт: ${{ secrets.LINK }}
+          to: ${{ secrets.TELEGRAM_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ✅ Проект ${{ github.repository }} был успешно задеплоен на сервер!
+            Ссылка на сайт: ${{ secrets.LINK }}
 
-          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+            Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
 
       - name: Send a Message to Telegram About Failed Deploy
         if: ${{ failure() }}
         uses: appleboy/telegram-action@master
         with:
-        to: ${{ secrets.TELEGRAM_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: |
-          ❌ Проект ${{ github.repository }}. Не удалось выполнить деплой!!
+          to: ${{ secrets.TELEGRAM_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ❌ Проект ${{ github.repository }}. Не удалось выполнить деплой!!
 
-          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+            Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
