@@ -15,7 +15,6 @@ DEBUG = strtobool(os.getenv('DEBUG', 'true'))
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost 127.0.0.1').split(' ')
 
 
-# Application definition
 
 INSTALLED_APPS = [
     'api.apps.ApiConfig',
