@@ -116,7 +116,7 @@ jobs:
           message: |
             ⏳ Проект ${{ github.repository }}. Backend был успешно запушен на DockerHub!
   
-            Репозиторий  DockerHub: hub.docker.com/repository/docker/${{ secrets.DOCKER_USERNANE }}/taski_backend
+            Репозиторий  DockerHub: hub.docker.com/repository/docker/${{ secrets.DOCKER_USERNAME }}/taski_backend
             Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
 
       - name: Send a Message to Telegram About Failed Backend Pushing to DockerHub
@@ -207,7 +207,7 @@ jobs:
           message: |
             ⏳ Проект ${{ github.repository }}. Frontend был успешно запушен на DockerHub!
 
-            Репозиторий  DockerHub: hub.docker.com/repository/docker/${{ secrets.DOCKER_USERNANE }}/taski_frontend
+            Репозиторий  DockerHub: hub.docker.com/repository/docker/${{ secrets.DOCKER_USERNAME }}/taski_frontend
             Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
 
       - name: Send a Message to Telegram About Failed Frontend Pushing to DockerHub
@@ -253,7 +253,7 @@ jobs:
           message: |
             ⏳ Проект ${{ github.repository }}. Gateway был успешно запушен на DockerHub!
   
-            Репозиторий  DockerHub: hub.docker.com/repository/docker/${{ secrets.DOCKER_USERNANE }}/taski_gateway
+            Репозиторий  DockerHub: hub.docker.com/repository/docker/${{ secrets.DOCKER_USERNAME }}/taski_gateway
             Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
 
       - name: Send a Message to Telegram About Failed Gateway Pushing to DockerHub
@@ -280,6 +280,16 @@ jobs:
 
       - name: Copy docker-compose.production.yml via SSH
         uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          source: "docker-compose.production.yml"
+          target: "taski"
+
+      - name: Executing remote ssh commands to deploy
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
