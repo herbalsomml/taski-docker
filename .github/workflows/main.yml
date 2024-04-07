@@ -7,19 +7,20 @@ on:
 
 jobs:
   send_message_to_telegram_about_starting_tests_and_deploying:
+    name: Send Message to Telegram about Starting Tests and Deploying
     runs-on: ubuntu-latest
     steps:
-    - name: Send Message to Telegram about Starting Tests and Deploying
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: |
-          ⏳ Проект ${{ github.repository }}. Начался процесс тестов и деплоя.
+      - uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ⏳ Проект ${{ github.repository }}. Начался процесс тестов и деплоя.
 
-          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+            Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
 
   backend_tests:
+    name: Backend Tests
     runs-on: ubuntu-latest
 
     services:
@@ -34,86 +35,53 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-    - name: Check Out Backend Code
-      uses: actions/checkout@v3
+      - name: Check Out Backend Code
+        uses: actions/checkout@v3
 
-    - name: Send Message to Telegram about Failed Backend Tests
-      if: ${{ failure() }}
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: |
-          ❌ Проект ${{ github.repository }}. При проверке Backend не получилось поулчить код проекта!
+      - name: Set Up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
 
-          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8==6.0.0 flake8-isort==6.0.0
+          pip install -r ./backend/requirements.txt
 
-    - name: Set Up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.9
+      - name: Test Backend With flake8 and Django Tests
+        env:
+          POSTGRES_USER: django_user
+          POSTGRES_PASSWORD: django_password
+          POSTGRES_DB: django_db
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+        run: |
+          python -m flake8 backend/
+          cd backend/
+          python manage.py test
 
-    - name: Send Message to Telegram about Failed Python Installing
-      if: ${{ failure() }}
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: |
-          ❌ Проект ${{ github.repository }}. При проверке Backend не получилось установить Python!
+      - name: Send a Message to Telegram About Successful Backend Tests
+        if: ${{ success() }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ⏳ Проект ${{ github.repository }}. Backend прошел тесты!
 
-          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+            Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
 
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8==6.0.0 flake8-isort==6.0.0
-        pip install -r ./backend/requirements.txt
+      - name: Send a Message to Telegram about Failed Backend Tests
+        if: ${{ failure() }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ❌ Проект ${{ github.repository }}. Backend не прошел тесты!
 
-    - name: Send Message to Telegram about Failed Backend Installing Dependencies
-      if: ${{ failure() }}
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: |
-          ❌ Проект ${{ github.repository }}. При проверке Backend не получилось установить зависимости!
-
-          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
-
-    - name: Test Backend With flake8 and Django Tests
-      env:
-        POSTGRES_USER: django_user
-        POSTGRES_PASSWORD: django_password
-        POSTGRES_DB: django_db
-        DB_HOST: 127.0.0.1
-        DB_PORT: 5432
-      run: |
-        python -m flake8 backend/
-        cd backend/
-        python manage.py test
-
-    - name: Send Message to Telegram about Passed Backend Tests
-      if: ${{ success() }}
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: |
-          ⏳ Проект ${{ github.repository }}. Backend прошел тесты!
-
-          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
-
-    - name: Send Message to Telegram about Failed Backend Tests
-      if: ${{ failure() }}
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: |
-          ❌ Проект ${{ github.repository }}. Backend не прошел тесты!
-
-          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+            Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
   
   build_and_push_backend_to_docker_hub:
     name: Push Backend Docker Image to DockerHub
@@ -133,62 +101,78 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Push to DockerHub
-        uses: docker/buil-push-action@v4
+        uses: docker/build-push-action@v4
         with:
           context: ./backend/
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/taski_backend:latest
 
-  send_message_to_telegram_about_pushing_backend_to_docker_hub:
-    runs-on: ubuntu-latest
-    needs: build_and_push_backend_to_docker_hub
-    steps:
-    - name: Send Message to Telegram about Pushing Backend to DockerHub
-      uses: appleboy/telegram-action@master
-      with:
+      - name: Send a Message to Telegram About Successful Backend Pushing to DockerHub
+        if: ${{ success() }}
+        uses: appleboy/telegram-action@master
+        with:
         to: ${{ secrets.TELEGRAM_ID }}
         token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         message: |
           ⏳ Проект ${{ github.repository }}. Backend был успешно запушен на DockerHub!
+  
           Репозиторий  DockerHub: hub.docker.com/repository/docker/${{ secrets.DOCKER_USERNANE }}/taski_backend
+          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+
+      - name: Send a Message to Telegram About Failed Backend Pushing to DockerHub
+        if: ${{ failure() }}
+        uses: appleboy/telegram-action@master
+        with:
+        to: ${{ secrets.TELEGRAM_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: |
+          ❌ Проект ${{ github.repository }}. Не удалось запушить Backend на DockerHub!
 
           Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
 
   frontend_tests:
+    name: Frontend Tests
     runs-on: ubuntu-latest
-
     steps:
-    - name: Check Out Frontend Code
-      uses: actions/checkout@v3
+      - name: Check Out Frontend Code
+        uses: actions/checkout@v3
 
-    - name: Set Up NodeJS
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18
+      - name: Set Up NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-    - name: Install Dependencies
-      run: |
-        cd frontend/
-        npm ci
+      - name: Install Dependencies
+        run: |
+          cd frontend/
+          npm ci
 
-    - name: Test Frontend
-      run: |
-        cd frontend/
-        npm run test
+      - name: Test Frontend
+        run: |
+          cd frontend/
+          npm run test
 
-  send_message_to_telegram_about_passing_frontend_tests:
-    runs-on: ubuntu-latest
-    needs: frontend_tests
-    steps:
-    - name: Send Message to Telegram about Passing Frontend Tests
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_ID }}
-        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        message: |
-          ⏳ Проект ${{ github.repository }}. Frontend успешно прошел тесты!
-          
-          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+      - name: Send a Message to Telegram About Successful Frontend Tests
+        if: ${{ success() }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ⏳ Проект ${{ github.repository }}. Frontend прошел тесты!
+
+            Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+
+      - name: Send a Message to Telegram about Failed Frontend Tests
+        if: ${{ failure() }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ❌ Проект ${{ github.repository }}. Frontend не прошел тесты!
+
+            Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
 
   build_frontend_and_push_to_docker_hub:
     name: Push Frontend Docker Image to DockerHub
@@ -214,21 +198,29 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/taski_frontend:latest
 
-  send_message_to_telegram_about_pushing_frontend_to_docker_hub:
-    runs-on: ubuntu-latest
-    needs: build_frontend_and_push_to_docker_hub
-    steps:
-    - name: Send Message to Telegram about Pushing Frontend to DockerHub
-      uses: appleboy/telegram-action@master
-      with:
+      - name: Send a Message to Telegram About Successful Frontend Pushing to DockerHub
+        if: ${{ success() }}
+        uses: appleboy/telegram-action@master
+        with:
         to: ${{ secrets.TELEGRAM_ID }}
         token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         message: |
           ⏳ Проект ${{ github.repository }}. Frontend был успешно запушен на DockerHub!
+
           Репозиторий  DockerHub: hub.docker.com/repository/docker/${{ secrets.DOCKER_USERNANE }}/taski_frontend
+          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+
+      - name: Send a Message to Telegram About Failed Frontend Pushing to DockerHub
+        if: ${{ failure() }}
+        uses: appleboy/telegram-action@master
+        with:
+        to: ${{ secrets.TELEGRAM_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: |
+          ❌ Проект ${{ github.repository }}. Не удалось запушить Frontend на DockerHub!
 
           Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
-        
+
   build_gateway_and_push_to_docker_hub:
     name: Push gateway Docker Image to DockerHub
     runs-on: ubuntu-latest
@@ -252,22 +244,31 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/taski_gateway:latest
 
-  send_message_to_telegram_about_pushing_gateway_to_docker_hub:
-    runs-on: ubuntu-latest
-    needs: build_gateway_and_push_to_docker_hub
-    steps:
-    - name: Send Message to Telegram about Pushing Gateway to DockerHub
-      uses: appleboy/telegram-action@master
-      with:
+      - name: Send a Message to Telegram About Successful Gateway Pushing to DockerHub
+        if: ${{ success() }}
+        uses: appleboy/telegram-action@master
+        with:
         to: ${{ secrets.TELEGRAM_ID }}
         token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         message: |
           ⏳ Проект ${{ github.repository }}. Gateway был успешно запушен на DockerHub!
+  
           Репозиторий  DockerHub: hub.docker.com/repository/docker/${{ secrets.DOCKER_USERNANE }}/taski_gateway
+          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+
+      - name: Send a Message to Telegram About Failed Gateway Pushing to DockerHub
+        if: ${{ failure() }}
+        uses: appleboy/telegram-action@master
+        with:
+        to: ${{ secrets.TELEGRAM_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: |
+          ❌ Проект ${{ github.repository }}. Не удалось запушить Gateway на DockerHub!
 
           Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
 
   deploy:
+    name: Deploying
     runs-on: ubuntu-latest
     needs:
       - build_and_push_backend_to_docker_hub
@@ -293,18 +294,26 @@ jobs:
             sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate
             sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic
             sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/collected_static/. /backend_static/static/
-
-  send_message_to_telegram_about_deploy:
-    runs-on: ubuntu-latest
-    needs: deploy
-    steps:
-    - name: Send Message to Telegram
-      uses: appleboy/telegram-action@master
-      with:
+  
+      - name: Send Message to Telegram about Successful Deploy
+        if: ${{ success() }}
+        uses: appleboy/telegram-action@master
+        with:
         to: ${{ secrets.TELEGRAM_ID }}
         token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         message: |
           ✅ Проект ${{ github.repository }} был успешно задеплоен на сервер!
           Ссылка на сайт: ${{ secrets.LINK }}
+
+          Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
+
+      - name: Send a Message to Telegram About Failed Deploy
+        if: ${{ failure() }}
+        uses: appleboy/telegram-action@master
+        with:
+        to: ${{ secrets.TELEGRAM_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: |
+          ❌ Проект ${{ github.repository }}. Не удалось выполнить деплой!!
 
           Репозиторий GitHub: ${{ github.server_url }}/${{ github.repository }}
