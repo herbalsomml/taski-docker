@@ -158,7 +158,7 @@ jobs:
     - name: Install Dependencies
       run: |
         cd frontend/
-        npi ci
+        npm ci
 
     - name: Test Frontend
       run: |
